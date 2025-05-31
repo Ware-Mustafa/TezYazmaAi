@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TezYazmaAI Pro</title>
+
+    <!-- Premium Stil Paketleri -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Özel Stiller -->
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+            --glass-effect: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            background: url('https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: var(--glass-effect) !important;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .nav-link {
+            position: relative;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+
+            .nav-link:after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 2px;
+                bottom: 0;
+                left: 0;
+                background: white;
+                transition: width 0.3s ease;
+            }
+
+            .nav-link:hover:after {
+                width: 100%;
+            }
+
+        .main-container {
+            backdrop-filter: blur(12px);
+            background: var(--glass-effect);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            margin: 2rem auto;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+            .floating-btn:hover {
+                transform: translateY(-5px) scale(1.1);
+            }
+
+        footer {
+            backdrop-filter: blur(10px);
+            background: var(--glass-effect) !important;
+            margin-top: auto;
+        }
+
+       
+      
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Premium Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-robot me-2"></i>TezMaster AI
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPremium">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarPremium">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-1"></i> Ana Sayfa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-shield-alt me-1"></i> Gizlilik
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Ana İçerik -->
+    <div class="container main-container animate__animated animate__fadeIn">
+        <main role="main" class="pb-3 text-white">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Floating Action Button -->
+    <a href="#" class="floating-btn animate__animated animate__bounceIn">
+        <i class="fas fa-paper-plane"></i>
+    </a>
+
+    <!-- Premium Footer -->
+    <footer class="footer py-4 text-white">
+        <div class="container text-center">
+            <div class="d-flex justify-content-center mb-3">
+                <a href="#" class="text-white mx-3"><i class="fab fa-twitter fa-lg"></i></a>
+                <a href="#" class="text-white mx-3"><i class="fab fa-discord fa-lg"></i></a>
+                <a href="#" class="text-white mx-3"><i class="fab fa-github fa-lg"></i></a>
+            </div>
+            <p class="mb-0">© 2025 TezMaster AI Pro - Tüm Hakları Saklıdır</p>
+        </div>
+    </footer>
+
+    <!-- Premium Scriptler -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script>
+        // Floating element efekti
+        gsap.to(".floating-element", {
+            y: 10,
+            duration: 2,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+
+        // Navbar scroll efekti
+        window.addEventListener("scroll", function() {
+            const navbar = document.querySelector(".navbar");
+            navbar.classList.toggle("scrolled", window.scrollY > 50);
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

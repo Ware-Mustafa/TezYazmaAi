@@ -1,0 +1,311 @@
+﻿@{
+    ViewData["Title"] = "TezMaster AI Premium";
+}
+
+<div class="chat-container">
+    <!-- Mesajlar için container (Sabit yükseklik) -->
+    <div id="chatBox" class="glass-card">
+        <!-- Mesajlar buraya dinamik eklenecek -->
+    </div>
+
+    <!-- Input alanı (Altta sabit) -->
+    <div class="input-group premium-input">
+        <input type="text" id="userInput" class="form-control glass-input"
+               placeholder="Tez konusunu yaz... (Örn: Yapay zeka etiği hakkında 5 sayfalık tez)" autocomplete="off">
+        <button id="sendButton" class="btn-premium">
+            <i class="fas fa-paper-plane me-2"></i>Gönder
+        </button>
+    </div>
+
+    <!-- İndirme Butonları (Mesajın ALTINDA ve SABİT) -->
+    <div id="downloadButtons" class="download-actions">
+        <button id="downloadPdf" class="btn-download pdf" disabled>
+            <i class="fas fa-file-pdf me-2"></i>PDF Oluştur
+        </button>
+        <button id="downloadWord" class="btn-download word" disabled>
+            <i class="fas fa-file-word me-2"></i>Word Oluştur
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let lastBotReply = "";
+            let isTyping = false;
+
+            // Mesaj gönderme fonksiyonu
+            function sendMessage() {
+                const userMessage = $("#userInput").val().trim();
+                if (!userMessage || isTyping) return;
+
+                // Kullanıcı mesajını göster
+                appendMessage(userMessage, 'user');
+                $("#userInput").val("");
+                $("#sendButton").prop("disabled", true);
+
+                // API isteği
+                $.post("/Home/SendMessage", { userMessage: userMessage })
+                    .done(function(data) {
+                        if (data.error) {
+                            showError(data.error);
+                        } else {
+                            lastBotReply = data.reply;
+                            typewriterEffect(data.reply, 'bot');
+                        }
+                    })
+                    .fail(function(xhr) {
+                        showError("Sunucu hatası: " + (xhr.responseJSON?.error || xhr.statusText));
+                    });
+            }
+
+            // Yazarak gösterme efekti
+            function typewriterEffect(text, sender) {
+                isTyping = true;
+                const messageId = "msg-" + Date.now();
+                const messageDiv = $(`
+                    <div id="${messageId}" class="d-flex mb-3 justify-content-${sender === 'user' ? 'end' : 'start'}">
+                        <div class="message ${sender}"></div>
+                    </div>
+                `);
+
+                $("#chatBox").append(messageDiv);
+                const contentDiv = messageDiv.find('.message');
+
+                // Typed.js efekti
+                new Typed(contentDiv[0], {
+                    strings: [text],
+                    typeSpeed: 20,
+                    showCursor: false,
+                    onComplete: function() {
+                        isTyping = false;
+                        $("#sendButton").prop("disabled", false);
+                        toggleDownloadButtons(true);
+                        scrollToBottom();
+                    }
+                });
+            }
+
+            // Mesaj ekleme (Basit versiyon)
+            function appendMessage(text, sender) {
+                $("#chatBox").append(`
+                    <div class="d-flex mb-3 justify-content-${sender === 'user' ? 'end' : 'start'}">
+                        <div class="message ${sender}">${text}</div>
+                    </div>
+                `);
+                scrollToBottom();
+            }
+
+            // İndirme butonlarını aç/kapa
+            function toggleDownloadButtons(show) {
+                $("#downloadButtons").fadeTo(300, show ? 1 : 0);
+                $("#downloadPdf, #downloadWord").prop("disabled", !show);
+            }
+
+            // Scroll otomatik aşağı
+            function scrollToBottom() {
+                $("#chatBox").stop().animate({ scrollTop: $("#chatBox")[0].scrollHeight }, 500);
+            }
+
+            // Hata gösterimi
+            function showError(error) {
+                $("#chatBox").append(`
+                    <div class="error-message animate__animated animate__headShake">
+                        ${error}
+                    </div>
+                `);
+                $("#sendButton").prop("disabled", false);
+                scrollToBottom();
+            }
+
+            // İndirme fonksiyonu
+            function downloadFile(format) {
+                if (!lastBotReply || isTyping) return;
+
+                const btn = $(`#download${format}`);
+                const originalText = btn.html();
+
+                btn.prop("disabled", true)
+                   .html(`<i class="fas fa-spinner fa-spin me-2"></i>Oluşturuluyor...`);
+
+                fetch(`/Home/Download?format=${format}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: lastBotReply })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `TezMaster_${new Date().toISOString().slice(0,10)}.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 100);
+                })
+                .catch(error => {
+                    showError(`İndirme hatası: ${error.message}`);
+                })
+                .finally(() => {
+                    btn.html(originalText).prop("disabled", false);
+                });
+            }
+
+            // Event listeners
+            $("#sendButton").click(sendMessage);
+            $("#userInput").keypress(function(e) {
+                if (e.which === 13) sendMessage();
+            });
+            $("#downloadPdf").click(() => downloadFile('pdf'));
+            $("#downloadWord").click(() => downloadFile('docx'));
+
+            // Başlangıçta indirme butonlarını gizle
+            toggleDownloadButtons(false);
+        });
+    </script>
+
+    <style>
+        /* Ana Container */
+        .chat-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        /* Mesaj Alanı */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Input Alanı */
+        .premium-input {
+            margin-top: auto; /* En alta sabitler */
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+            border-radius: 10px !important;
+            padding: 12px 20px;
+        }
+
+        /* Butonlar */
+        .btn-premium {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            border: none;
+            color: white;
+            border-radius: 10px !important;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-download {
+            border: none;
+            color: white;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            margin: 0 5px;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+
+            .btn-download.pdf {
+                background: #FF4B2B;
+            }
+
+            .btn-download.word {
+                background: #1A2980;
+            }
+
+            .btn-download:not(:disabled):hover {
+                transform: translateY(-2px);
+                opacity: 1;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+        /* Mesaj Balonları */
+        .message {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.5;
+            animation: fadeIn 0.5s;
+        }
+
+            .message.user {
+                background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+                color: white;
+                margin-left: auto;
+                border-bottom-right-radius: 5px;
+            }
+
+            .message.bot {
+                background: rgba(255, 255, 255, 0.9);
+                color: #333;
+                margin-right: auto;
+                border-bottom-left-radius: 5px;
+            }
+
+        /* İndirme Butonları */
+        .download-actions {
+            display: flex;
+            justify-content: center;
+            padding: 15px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        /* Animasyonlar */
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .message {
+                max-width: 85%;
+            }
+
+            .btn-download {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+}
