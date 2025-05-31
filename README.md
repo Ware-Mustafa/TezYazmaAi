@@ -27,11 +27,19 @@ TezYazmaAI, üniversite öğrencileri ve akademisyenler için özel olarak geli�
 
 
 
-
 ## 📁 Kurulum
 
-Projeyi çalıştırmak için:
+Projeyi çalıştırmadan önce aşağıdaki adımları izleyin:
 
-1. Bu repoyu klonlayın:
+1.  **Groq API Key alın:**  
+   - [https://groq.com](https://groq.com) adresine giderek ücretsiz bir hesap oluşturun.  
+   - Panel üzerinden bir **API Key** alın ve bir kenara not edin.
+
+2. Bu repoyu klonlayın:
    ```bash
    git clone https://github.com/Ware-Mustafa/TezYazmaAi.git
+
+## 📫 İletişim
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/mustafa-akt%C3%BCrk-318914344/)
+
